@@ -90,7 +90,7 @@ function makeRequest($url) {
 
   //Other cURL options.
   curl_setopt($ch, CURLOPT_HEADER, true);
-  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+  // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt ($ch, CURLOPT_FAILONERROR, true);
 
@@ -545,3 +545,4 @@ if (stripos($contentType, "text/html") !== false) {
   header("Content-Length: " . strlen($responseBody));
   echo $responseBody;
 }
+?>
