@@ -3,8 +3,10 @@
 // Private web proxy script by Heiswayi Nrird (http://heiswayi.github.io)
 // Released under MIT license
 // Free Software should work like this: whatever you take for free, you must give back for free.
-
-ob_start("ob_gzhandler");
+if (extension_loaded('zlib')) {
+    ob_end_clean(); 
+    ob_start('ob_gzhandler');
+}
 
 if (!function_exists("curl_init")) die ("This proxy requires PHP's cURL extension. Please install/enable it on your server and try again.");
 
@@ -423,13 +425,23 @@ if (stripos($contentType, "text/html") !== false) {
     $element->setAttribute("style", proxifyCSS($element->getAttribute("style"), $url));
   }
   //Proxify any of these attributes appearing in any tag.
-  $proxifyAttributes = array("href", "src");
+  $proxifyAttributes = array("href", "src", "srcset");
   foreach($proxifyAttributes as $attrName) {
     foreach($xpath->query('//*[@' . $attrName . ']') as $element) { //For every element with the given attribute...
       $attrContent = $element->getAttribute($attrName);
+      if ($attrName == "src" && stripos($attrContent, "data:") === 0) continue;
       if ($attrName == "href" && (stripos($attrContent, "javascript:") === 0 || stripos($attrContent, "mailto:") === 0)) continue;
-      $attrContent = rel2abs($attrContent, $url);
-      $attrContent = PROXY_PREFIX . $attrContent;
+      if ($attrName == "srcset") {
+        $attrContents = explode(",", $attrContent);
+        foreach($attrContents as &$attrValue) {
+          $attrValue = rel2abs($attrValue, $url);
+          $attrValue = PROXY_PREFIX . $attrValue;
+        }
+        $attrContent = implode(", ", $attrContents);
+      } else {
+        $attrContent = rel2abs($attrContent, $url);
+        $attrContent = PROXY_PREFIX . $attrContent;
+      }
       $element->setAttribute($attrName, $attrContent);
     }
   }
